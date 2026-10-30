@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>शुभ विवाह - रौशनी एवं नवीन</title>
+  <title>शुभ विवाह -नवीन संग रौशनी</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -1742,12 +1742,13 @@
         c5: { label: "Join us", title: "स्थान", photo: "08" }
       },
       initials: "प्र · आ",
-      musicTitle: "Pal Pal Dil Ke Paas Tum Rehti Ho",
-      musicUrl: "./pal-pal-dil-ke-paas.mp3",   // put your own copy of the song next to index.html with this exact name
-      localMusicUrl: "https://raw.githubusercontent.com/vinitshahdeo/Wedding-Invitation/master/assets/mp3/song.mp3", // fallback if the file above is missing
-      bride: { name: "रौशनी ", full: "रौशनी सीनम", parents: "श्री बद्रीलाल सीनम एवं श्रीमती सुशीला सीनम की सुपुत्री", note: "" },
+      musicTitle: "Piche Barati Aage Band Baja",
+      musicUrl: "./song.mp3",
+      musicStartSec: 41.25,
+      localMusicUrl: "https://raw.githubusercontent.com/adityapandey27/naveen/main/song.mp3",
       groom: { name: "नवीन", full: "नवीन चंद्रावत", parents: "श्री चन्दन चंद्रावत एवं श्रीमती निर्मला चंद्रावत के सुपुत्र", note: "" },
-      weddingISO: "2026-12-06T19:30:00+05:30",
+      bride: { name: "रौशनी ", full: "रौशनी सीनम", parents: "श्री बद्रीलाल सीनम एवं श्रीमती सुशीला सीनम की सुपुत्री", note: "" },
+      weddingISO: "2026-11-22T19:30:00+05:30",
       dateHi: "22 नवम्बर 2026, रविवार",
       cityHi: "ग्राम परवाड़ा, खवासा (झाबुआ)",
       venue: {
@@ -1782,7 +1783,7 @@
     const C = CONFIG, $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
     const A = k => C.assets[k] ? (IMG[C.assets[k]] || C.base + C.assets[k]) : null;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const alt = t => `${t} — ${C.bride.name} एवं ${C.groom.name}`;
+    const alt = t => `${t} — ${C.groom.name} संग ${C.bride.name}`;
     /* photo slot: <div class=slot data-p="01" data-w data-h data-alt>. A missing file just leaves the cream placeholder */
     const slot = (key, w, h, a, fb) => `<div class="slot" data-p="${key}" data-w="${w}" data-h="${h}" data-alt="${a}" data-fb="${fb || ""}"></div>`;
     const RULE = `<svg class="rule" viewBox="0 0 160 20" aria-hidden="true"><path d="M6 10H62M98 10h56" stroke="#B58A3C"/><path d="M80 2C88 8 88 12 80 18 72 12 72 8 80 2Z" fill="#E79B23"/><circle cx="68" cy="10" r="2.4" fill="#C7412B"/><circle cx="92" cy="10" r="2.4" fill="#C7412B"/></svg>`;
@@ -1892,7 +1893,7 @@ ${scatter()}${rangoli()}${lotus(62)}${lotus(738)}${kalash(250)}${kalash(550)}${[
   <div class="hero-copy">
     <div class="ganesh-wrap"><img class="ganesh" src="${A("ganesh")}" width="300" height="398" alt="श्री गणेश" fetchpriority="high"></div>
     <p class="s-hi" style="color:var(--marigold-d);font-size:.88rem">श्री गणेशाय नमः</p>
-    <h1 class="names d-hi">${C.bride.name}</h1><em class="amp">एवं</em><h1 class="names d-hi">${C.groom.name}</h1>
+    <h1 class="names d-hi">${C.groom.name}</h1><em class="amp">संग</em><h1 class="names d-hi">${C.bride.name}</h1>
     ${rule()}<p class="hero-meta s-hi">${C.dateHi} · ${C.cityHi}</p>
   </div>
   ${SCENE}
@@ -1988,24 +1989,48 @@ ${scatter()}${rangoli()}${lotus(62)}${lotus(738)}${kalash(250)}${kalash(550)}${[
     /* music */
     const au = new Audio();
     au.src = C.musicUrl;
-    au.loop = true;
+    au.loop = false;
     au.preload = "auto";
     au.autoplay = true;
+
+    const startSec = C.musicStartSec || 0;
+    let initialSeekDone = false;
+
+    const seekToStart = () => {
+      if (!initialSeekDone && startSec > 0) {
+        try {
+          if (au.currentTime < startSec) {
+            au.currentTime = startSec;
+            initialSeekDone = true;
+          }
+        } catch (e) { }
+      }
+    };
+
+    au.addEventListener("loadedmetadata", seekToStart);
+    au.addEventListener("canplay", seekToStart);
+    au.addEventListener("playing", seekToStart);
+    au.onended = () => {
+      au.currentTime = startSec;
+      au.play().catch(() => { });
+    };
 
     let wantsPlay = true;
     const mb = $("#music");
 
     function playMusic() {
       wantsPlay = true;
+      seekToStart();
       const p = au.play();
       if (p !== undefined) {
-        p.catch(() => { });
+        p.then(() => { seekToStart(); }).catch(() => { });
       }
     }
 
     au.onerror = () => {
       if (au.src !== C.localMusicUrl && !au.src.endsWith(C.localMusicUrl)) {
         au.src = C.localMusicUrl;
+        initialSeekDone = false;
         if (wantsPlay) {
           au.play().catch(() => { });
         }
